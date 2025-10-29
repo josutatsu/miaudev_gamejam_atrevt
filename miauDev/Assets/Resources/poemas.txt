@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "titulo": "Oda a la Luna",
+    "descripcion": "Un poema sobre la serenidad de la noche y la luna brillante.",
+    "estado": false,
+    "imagen": "oda_luna.png"
+  },
+  {
+    "id": 2,
+    "titulo": "Versos del Amanecer",
+    "descripcion": "Poema que describe la esperanza de un nuevo día.",
+    "estado": true,
+    "imagen": "versos_amanecer.png"
+  }
+]
