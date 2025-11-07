@@ -2503,7 +2503,7 @@ MonoBehaviour:
   laserLine: {fileID: 1027499581}
   hitLayers:
     serializedVersion: 2
-    m_Bits: 320
+    m_Bits: 0
   vidaTexto: {fileID: 1929778874}
   balasTexto: {fileID: 1607331392}
   deathScreen: {fileID: 1336403605}
