@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class inputSystemP : MonoBehaviour
@@ -35,6 +36,13 @@ public class inputSystemP : MonoBehaviour
     public Text balasTexto;
     public GameObject deathScreen;
 
+    [Header("Sonidos")]
+    public AudioSource audioSource;
+    public AudioClip sonidoDisparo;
+    public AudioClip sonidoRecarga;
+    public AudioClip sonidoMovimiento;
+    public AudioClip sonidoSalto;
+
     private int currentAmmo;
     private bool isReloading = false;
     private bool mostrandoLaser = false;
@@ -54,6 +62,7 @@ public class inputSystemP : MonoBehaviour
     private bool reloadPressed;
 
     private Animator animator;
+    private bool isWalkingSoundPlaying = false;
 
     // ======== CICLO DE VIDA ========
     void Awake()
@@ -65,39 +74,23 @@ public class inputSystemP : MonoBehaviour
     {
         controls.Enable();
 
-        // Movimiento
         controls.Player.Move.performed += OnMove;
         controls.Player.Move.canceled += OnMoveCancel;
-
-        // Mirar
         controls.Player.Look.performed += OnLook;
         controls.Player.Look.canceled += OnLookCancel;
-
-        // Saltar
         controls.Player.Jump.performed += OnJump;
         controls.Player.Jump.canceled += OnJumpCancel;
-
-        // Correr
         controls.Player.Run.performed += OnRun;
         controls.Player.Run.canceled += OnRunCancel;
-
-        // Cambiar cámara
         controls.Player.ChangeCamera.performed += ctx => CambiarCamara();
-
-        // Disparar
         controls.Player.Fire.performed += ctx => shootPressed = true;
         controls.Player.Fire.canceled += ctx => shootPressed = false;
-
-        // Recargar
         controls.Player.Reload.performed += ctx => reloadPressed = true;
-
-        // Panel poema
         controls.Player.TogglePanelPoe.performed += ctx => TogglePoemaPanel();
     }
 
     void OnDisable()
     {
-        // Remover todos los eventos para evitar fugas de memoria
         controls.Player.Move.performed -= OnMove;
         controls.Player.Move.canceled -= OnMoveCancel;
         controls.Player.Look.performed -= OnLook;
@@ -158,10 +151,32 @@ public class inputSystemP : MonoBehaviour
         animator.SetBool("IsRunning", runPressed);
         animator.SetBool("IsGrounded", isGrounded);
 
+        // Reproducir sonido de movimiento si se está moviendo
+        if (moveMagnitude > 0.1f && isGrounded)
+        {
+            if (!isWalkingSoundPlaying && sonidoMovimiento != null)
+            {
+                audioSource.clip = sonidoMovimiento;
+                audioSource.loop = true;
+                audioSource.Play();
+                isWalkingSoundPlaying = true;
+            }
+        }
+        else
+        {
+            if (isWalkingSoundPlaying)
+            {
+                audioSource.Stop();
+                isWalkingSoundPlaying = false;
+            }
+        }
+
         if (jumpPressed && isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             animator.SetTrigger("Jump");
+            if (sonidoSalto != null)
+                audioSource.PlayOneShot(sonidoSalto);
         }
 
         velocity.y += gravity * Time.deltaTime;
@@ -212,6 +227,9 @@ public class inputSystemP : MonoBehaviour
 
         currentAmmo--;
 
+        if (sonidoDisparo != null)
+            audioSource.PlayOneShot(sonidoDisparo);
+
         Camera cam = cameras[currentCameraIndex];
         Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         RaycastHit hit;
@@ -249,6 +267,9 @@ public class inputSystemP : MonoBehaviour
         if (balasTexto != null)
             balasTexto.text = "Recargando...";
 
+        if (sonidoRecarga != null)
+            audioSource.PlayOneShot(sonidoRecarga);
+
         yield return new WaitForSeconds(reloadTime);
 
         currentAmmo = maxAmmo;
@@ -267,11 +288,25 @@ public class inputSystemP : MonoBehaviour
         if (currentHealth <= 0)
         {
             currentHealth = 0;
+
+            // Mostrar pantalla de muerte
             if (deathScreen != null)
                 deathScreen.SetActive(true);
+
+            // Desactivar controles del jugador
+            controller.enabled = false;
+
+            // Iniciar el temporizador para cargar la escena "badending"
+            StartCoroutine(CambiarAEscenaMuerte());
         }
 
         ActualizarUI();
+    }
+
+    IEnumerator CambiarAEscenaMuerte()
+    {
+        yield return new WaitForSeconds(5f); // Esperar 5 segundos
+        SceneManager.LoadScene("badending"); // Cargar la escena final
     }
 
     // ======== UI ========

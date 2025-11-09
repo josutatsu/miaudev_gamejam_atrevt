@@ -5,7 +5,7 @@ public class MainMenuController : MonoBehaviour
 {
     public void PlayGame()
     {
-        SceneManager.LoadScene("shooter_cap1"); // Cambiar al nombre por la escena del juego!!!!!!!!!!!!
+        SceneManager.LoadScene("cap0_cuartoblanco"); // Cambiar al nombre por la escena del juego!!!!!!!!!!!!
     }
 
     public void OpenInfo()

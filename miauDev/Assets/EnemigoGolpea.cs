@@ -8,8 +8,20 @@ public class EnemigoGolpea : MonoBehaviour
     public float damagePerSecond = 10f; // daño continuo
     public float hitInterval = 1f;      // cada cuántos segundos daña
 
+    [Header("Sonido de golpe")]
+    public AudioClip golpeSonido;        // asignar en el inspector
+    private AudioSource audioSource;     // componente de audio
+
     private bool playerInRange = false;
     private float nextDamageTime = 0f;
+
+    void Start()
+    {
+        // Agrega un AudioSource al enemigo si no tiene uno
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+    }
 
     void OnTriggerEnter(Collider other)
     {
@@ -37,6 +49,10 @@ public class EnemigoGolpea : MonoBehaviour
             inputSystemP player = FindObjectOfType<inputSystemP>();
             if (player != null)
                 player.RecibirDaño(damagePerSecond);
+
+            // Reproducir sonido de golpe
+            if (golpeSonido != null)
+                audioSource.PlayOneShot(golpeSonido);
         }
     }
 }
